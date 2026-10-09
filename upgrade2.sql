@@ -1,0 +1,3 @@
+USE buildmart;
+ALTER TABLE users ADD district VARCHAR(40) NULL, ADD address VARCHAR(160) NULL, ADD about TEXT NULL;
+ALTER TABLE products ADD image VARCHAR(60) NULL;

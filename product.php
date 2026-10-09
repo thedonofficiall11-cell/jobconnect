@@ -1,0 +1,12 @@
+<?php require_once 'config.php';$id=(int)($_GET['id']??0);
+$p=q('SELECT p.*,u.shop,u.district FROM products p LEFT JOIN users u ON u.id=p.seller_id WHERE p.id=?',[$id])->fetch();if(!$p){http_response_code(404);exit('Product not found');}
+$bought=me()&&q("SELECT 1 FROM order_items i JOIN orders o ON o.id=i.order_id WHERE i.product_id=? AND o.user_id=? AND o.status='delivered'",[$id,me()['id']])->fetch();
+if($_SERVER['REQUEST_METHOD']=='POST'){check();need_perm('review');if($bought)q('REPLACE INTO reviews(product_id,user_id,rating,body) VALUES(?,?,?,?)',[$id,me()['id'],min(5,max(1,(int)$_POST['rating'])),trim($_POST['body'])]);header("Location: product.php?id=$id");exit;}
+$rv=q('SELECT r.*,u.name FROM reviews r JOIN users u ON u.id=r.user_id WHERE product_id=? ORDER BY r.id DESC',[$id])->fetchAll();
+$avg=$rv?round(array_sum(array_column($rv,'rating'))/count($rv),1):0;$title=$p['name'];include 'header.php';?>
+<main class="page"><?php if($p['image']):?><img class="pimg" src="uploads/<?=e($p['image'])?>" alt=""><?php endif;?><small><?php if($p['seller_id']):?><a href="shop.php?id=<?=$p['seller_id']?>"><?=e($p['shop']?:$p['seller'])?></a> · 📍 <?=e($p['district'])?><?php else:?><?=e($p['seller'])?><?php endif;?></small><h1><?=e($p['name'])?></h1><p><?=e($p['descr'])?></p>
+<p class="tot"><?=money($p['price'])?> / <?=e($p['unit'])?> <small><?=$p['stock']?> in stock</small></p>
+<form method="post" action="cart.php" class="inline"><input type="hidden" name="t" value="<?=csrf()?>"><input type="hidden" name="add" value="<?=$p['id']?>"><input class="qty" type="number" name="qty" value="1" min="1" max="<?=$p['stock']?>"><button>Add to cart</button></form>
+<h2>Reviews <span class="stars"><?=$avg?'★ '.$avg.' ('.count($rv).')':''?></span></h2><?php if(!$rv):?><p>No reviews yet. Only buyers with a delivered order can review.</p><?php endif;
+foreach($rv as $r):?><div class="pay"><b><?=e($r['name'])?></b> <span class="stars"><?=str_repeat('★',$r['rating'])?></span> <small>Verified buyer</small><br><?=e($r['body'])?></div><?php endforeach;
+if($bought):?><form method="post" class="f"><input type="hidden" name="t" value="<?=csrf()?>"><label>Rating<select name="rating"><?php for($i=5;$i>0;$i--):?><option><?=$i?></option><?php endfor;?></select></label><label>Your review<textarea name="body"></textarea></label><button>Post review</button></form><?php endif;?><h2>Similar products near you</h2><div class="scroller"><?php foreach(recs(6,$p['cat_id'],$id) as $p2){$p=$p2;include 'card.php';}?></div></main><?php include 'footer.php';

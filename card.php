@@ -1,0 +1,5 @@
+<article class="card"><a class="ph" href="product.php?id=<?=$p['id']?>"><?php if(!empty($p['image'])):?><img src="uploads/<?=e($p['image'])?>" alt="" loading="lazy"><?php else:?><span><?=e(mb_substr($p['name'],0,1))?></span><?php endif;?>
+<?php if($t=near($p['sd']??null)):?><i class="badge loc">📍 <?=e($t)?></i><?php endif;?><?php if($p['stock']<20):?><i class="badge r">Only <?=$p['stock']?> left</i><?php endif;?></a>
+<small><?=e($p['cat']??'')?> · <?php if(!empty($p['seller_id'])):?><a href="shop.php?id=<?=$p['seller_id']?>"><?=e($p['shop']?:$p['seller'])?></a><?php else:?><?=e($p['seller'])?><?php endif;?></small>
+<h3><a href="product.php?id=<?=$p['id']?>"><?=e($p['name'])?></a></h3>
+<div class="row"><strong><?=money($p['price'])?><span>/<?=e($p['unit'])?></span></strong><form method="post" action="cart.php"><input type="hidden" name="t" value="<?=csrf()?>"><input type="hidden" name="add" value="<?=$p['id']?>"><input type="hidden" name="qty" value="1"><button>Add</button></form></div></article>

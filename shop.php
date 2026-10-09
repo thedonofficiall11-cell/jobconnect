@@ -1,0 +1,5 @@
+<?php require_once 'config.php';$id=(int)($_GET['id']??0);$u=q("SELECT * FROM users WHERE id=? AND role='seller' AND status='active'",[$id])->fetch();if(!$u){http_response_code(404);exit('Shop not found');}
+$nm=$u['shop']?:$u['name'];$ps=q('SELECT p.*,c.name cat,? shop,? sd FROM products p LEFT JOIN categories c ON c.id=p.cat_id WHERE p.seller_id=? AND p.stock>0 ORDER BY p.id DESC',[$nm,$u['district'],$id])->fetchAll();
+$rt=q('SELECT AVG(r.rating) a,COUNT(*) n FROM reviews r JOIN products p ON p.id=r.product_id WHERE p.seller_id=?',[$id])->fetch();$title=$nm;include 'header.php';?>
+<main class="page" style="max-width:1200px"><div class="shophead"><h1><?=e($nm)?> <small class="role">Verified seller</small></h1><p>📍 <?=e($u['district']?:'Rwanda')?><?=$u['address']?', '.e($u['address']):''?> · <?=count($ps)?> products<?=$rt['n']?' · ★ '.round($rt['a'],1).' ('.$rt['n'].' reviews)':''?></p><p><?=e($u['about'])?></p></div>
+<h2>Products</h2><section class="grid"><?php foreach($ps as $p)include 'card.php';?></section></main><?php include 'footer.php';

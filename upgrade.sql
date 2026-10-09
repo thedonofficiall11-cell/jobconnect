@@ -1,0 +1,10 @@
+USE buildmart;
+ALTER TABLE users MODIFY role ENUM('customer','seller','support','admin') DEFAULT 'customer', ADD status ENUM('active','pending','suspended') DEFAULT 'active', ADD shop VARCHAR(120) NULL;
+ALTER TABLE products ADD seller_id INT NULL;
+ALTER TABLE orders MODIFY status ENUM('pending','paid','shipped','delivered','cancelled') DEFAULT 'pending', ADD subtotal INT DEFAULT 0, ADD delivery_fee INT DEFAULT 0, ADD discount INT DEFAULT 0, ADD method VARCHAR(20) DEFAULT 'standard', ADD coupon VARCHAR(30) NULL;
+ALTER TABLE order_items ADD seller_id INT NULL, ADD item_status ENUM('pending','shipped') DEFAULT 'pending';
+CREATE TABLE order_events(id INT AUTO_INCREMENT PRIMARY KEY,order_id INT,status VARCHAR(20),note VARCHAR(255),created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,INDEX(order_id));
+CREATE TABLE coupons(code VARCHAR(30) PRIMARY KEY,percent INT,active TINYINT DEFAULT 1,expires DATE NULL);
+CREATE TABLE reviews(id INT AUTO_INCREMENT PRIMARY KEY,product_id INT,user_id INT,rating TINYINT,body TEXT,created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,UNIQUE(product_id,user_id));
+INSERT INTO coupons(code,percent) VALUES('WELCOME5',5),('BUILD10',10);
+INSERT INTO order_events(order_id,status,note) SELECT id,status,'Existing order' FROM orders;
